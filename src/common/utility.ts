@@ -97,20 +97,30 @@ export class Utility {
             return inputFileFromContextMenu.fsPath;
         } else {
             TelemetryClient.sendEvent(eventName, { entry: "commandPalette" });
-            const fileList: vscode.Uri[] = await vscode.workspace.findFiles(filePattern);
-            if (!fileList || fileList.length === 0) {
-                vscode.window.showErrorMessage(`No ${fileDescription} can be found under this workspace.`);
-                return null;
-            }
 
-            const fileItemList: vscode.QuickPickItem[] = Utility.getQuickPickItemsFromUris(fileList);
-            const fileItem: vscode.QuickPickItem = await vscode.window.showQuickPick(fileItemList, { placeHolder: `Select ${fileDescription}`});
-            if (fileItem) {
-                return fileItem.detail;
-            } else {
-                return null;
+            try {
+                const fileItemList: Promise<vscode.QuickPickItem[]> = Utility.findFiles(filePattern, fileDescription);
+                const fileItem: vscode.QuickPickItem = await vscode.window.showQuickPick(fileItemList, { placeHolder: `Select ${fileDescription}` });
+                if (fileItem) {
+                    return fileItem.detail;
+                } else {
+                    return null;
+                }
+            } catch (error) {
+                vscode.window.showErrorMessage((error as Error).message);
             }
         }
+    }
+
+    public static async findFiles(filePattern: string, fileDescription: string): Promise<vscode.QuickPickItem[]> {
+        const fileList: vscode.Uri[] = await vscode.workspace.findFiles(filePattern);
+        if (!fileList || fileList.length === 0) {
+            return Promise.reject<vscode.QuickPickItem[]>(`No ${fileDescription} can be found under this workspace.`);
+            // throw new Error(`No ${fileDescription} can be found under this workspace.`);
+            // return null;
+        }
+
+        return Utility.getQuickPickItemsFromUris(fileList);
     }
 
     public static getQuickPickItemsFromUris(uriList: vscode.Uri[]): vscode.QuickPickItem[] {
