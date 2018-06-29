@@ -76,7 +76,7 @@ export class EdgeManager {
         }
 
         if (path.basename(templateFile) === Constants.moduleFolder) {
-            templateFile = path.join(path.dirname(templateFile),  Constants.deploymentTemplate);
+            templateFile = path.join(path.dirname(templateFile), Constants.deploymentTemplate);
             const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(templateFile));
             if (!workspaceFolder || !await fse.exists(templateFile)) {
                 vscode.window.showInformationMessage(Constants.noSolutionFileWithModulesFolder);
@@ -169,7 +169,7 @@ export class EdgeManager {
                     }
                 }
             }
-        } catch (err) {}
+        } catch (err) { }
     }
 
     // TODO: The command is temperory for migration stage, will be removed later.
@@ -269,7 +269,8 @@ export class EdgeManager {
                     `--no-input ${gitHubSource} module_name=${name} image_repository=${repositoryName} --checkout ${branch}`);
                 break;
             case Constants.LANGUAGE_NODE:
-                await Executor.executeCMD(outputChannel, "yo", { cwd: `${parent}`, shell: true }, `azure-iot-edge-module -n "${name}" -r ${repositoryName}`);
+                await Executor.executeCMD(outputChannel, "npx", { cwd: `${parent}`, shell: true },
+                    `-p yo -p generator-azure-iot-edge-module -- yo azure-iot-edge-module -n "${name}" -r ${repositoryName}`);
                 break;
             default:
                 break;
@@ -362,15 +363,15 @@ export class EdgeManager {
         return { repositoryName, imageName };
     }
 
-    private async updateRegistrySettings(address: string, registries: any, envFile: string): Promise<{registries: string, usernameEnv: string, passwordEnv: string}> {
+    private async updateRegistrySettings(address: string, registries: any, envFile: string): Promise<{ registries: string, usernameEnv: string, passwordEnv: string }> {
         let usernameEnv;
         let passwordEnv;
         const lowerCase = address.toLowerCase();
         if (lowerCase === "localhost" || lowerCase.startsWith("localhost:")) {
-            return {registries, usernameEnv, passwordEnv};
+            return { registries, usernameEnv, passwordEnv };
         }
         await Utility.loadEnv(envFile);
-        const {exists, keySet} = this.checkAddressExist(address, registries);
+        const { exists, keySet } = this.checkAddressExist(address, registries);
 
         if (!exists) {
             const addressKey = Utility.getAddressKey(address, keySet);
@@ -386,7 +387,7 @@ export class EdgeManager {
             }
             registries[addressKey] = JSON.parse(newRegistry);
         }
-        return {registries, usernameEnv, passwordEnv};
+        return { registries, usernameEnv, passwordEnv };
     }
 
     private async writeRegistryCredEnv(address: string, envFile: string, usernameEnv: string, passwordEnv: string): Promise<void> {
@@ -436,11 +437,11 @@ export class EdgeManager {
         }
     }
 
-    private checkAddressExist(address: string, registriesObj: any): {exists: boolean, keySet: Set<string>} {
+    private checkAddressExist(address: string, registriesObj: any): { exists: boolean, keySet: Set<string> } {
         const keySet = new Set();
         let exists = false;
         if (registriesObj === undefined) {
-            return {exists, keySet};
+            return { exists, keySet };
         }
 
         const expandedContent = Utility.expandEnv(JSON.stringify(registriesObj));
@@ -454,7 +455,7 @@ export class EdgeManager {
                 }
             }
         }
-        return {exists, keySet};
+        return { exists, keySet };
     }
 
     private async selectModuleTemplate(label?: string): Promise<string> {
